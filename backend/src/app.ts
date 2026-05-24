@@ -17,7 +17,24 @@ import { dbService } from "./services/dbService.js";
 export const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.FRONTEND_ORIGIN, credentials: true }));
+
+const allowedOrigins = env.FRONTEND_ORIGIN.split(",").map(o => o.trim().replace(/\/$/, ""));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+    const cleanOrigin = origin.trim().replace(/\/$/, "");
+    const isAllowed = allowedOrigins.some(allowed => allowed === "*" || allowed === cleanOrigin);
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: "1mb" }));
 app.use(loggerMiddleware);
 if (!isProduction) app.use(morgan("dev"));
