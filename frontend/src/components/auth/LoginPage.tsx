@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { ShieldCheck, ArrowRight } from "lucide-react";
+import toast from "react-hot-toast";
 
-export function LoginPage({ onLogin, isConfigured }: { onLogin: () => void; isConfigured: boolean }) {
+export function LoginPage({ 
+  onLogin, 
+  onDemo, 
+  isConfigured 
+}: { 
+  onLogin: () => void; 
+  onDemo: () => Promise<void>; 
+  isConfigured: boolean 
+}) {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -15,6 +24,20 @@ export function LoginPage({ onLogin, isConfigured }: { onLogin: () => void; isCo
     }
   };
 
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    const id = toast.loading("Initializing Demo Workspace...");
+    try {
+      await onDemo();
+      toast.success("FlowMind Demo sandbox active!", { id });
+    } catch (err) {
+      console.error("Demo login failed", err);
+      toast.error("Failed to spin up demo workspace.", { id });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative grid min-h-screen place-items-center px-6 overflow-hidden bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 transition-colors duration-300">
       {/* Background Gradients & Grid */}
@@ -23,7 +46,7 @@ export function LoginPage({ onLogin, isConfigured }: { onLogin: () => void; isCo
       {/* Glow Orbs */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-violet-600/10 dark:bg-purple-650/15 blur-[120px] animate-pulse-glow-1" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] rounded-full bg-blue-600/10 dark:bg-indigo-650/15 blur-[140px] animate-pulse-glow-2" />
-
+ 
       {/* Card container */}
       <div className="relative w-full max-w-4xl overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-white/70 shadow-2xl backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-900/60 hover:border-violet-500/20 dark:hover:border-violet-500/10 transition-all duration-500">
         <div className="grid gap-0 md:grid-cols-[1.1fr_0.9fr]">
@@ -57,14 +80,14 @@ export function LoginPage({ onLogin, isConfigured }: { onLogin: () => void; isCo
               )}
             </div>
 
-            {/* Login button */}
-            <div className="mt-10">
+            {/* Login buttons */}
+            <div className="mt-10 flex flex-col gap-3">
               <button 
                 onClick={handleLogin}
                 disabled={loading || !isConfigured}
                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white py-4 px-6 text-sm font-bold rounded-xl shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:shadow-[0_12px_28px_-6px_rgba(99,102,241,0.6)] disabled:opacity-50 transition-all duration-300 transform active:scale-[0.98]"
               >
-                {loading ? (
+                {loading && isConfigured ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -79,6 +102,28 @@ export function LoginPage({ onLogin, isConfigured }: { onLogin: () => void; isCo
                   </>
                 )}
               </button>
+
+              <button 
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-3 border border-slate-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800/80 py-4 px-6 text-sm font-bold rounded-xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50"
+              >
+                {loading && !isConfigured ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-800 dark:text-zinc-200" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Loading sandbox...
+                  </span>
+                ) : (
+                  <>
+                    <span>Continue in Demo Mode</span>
+                    <ArrowRight size={16} className="text-violet-500" />
+                  </>
+                )}
+              </button>
+              
               <div className="mt-3 text-center text-xs text-slate-500 dark:text-zinc-500">
                 Secure authentication handled natively by Microsoft Identity Platform.
               </div>

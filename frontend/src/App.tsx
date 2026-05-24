@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect } from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Header } from "./components/layout/Header";
 import { PageWrapper } from "./components/layout/PageWrapper";
 import { Sidebar } from "./components/layout/Sidebar";
@@ -10,6 +10,7 @@ import { useAuth } from "./hooks/useAuth";
 import { usePipeline } from "./hooks/usePipeline";
 import { useAppStore } from "./store/useAppStore";
 import { LoginPage } from "./components/auth/LoginPage";
+import { flowmindApi } from "./services/api";
 
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -22,10 +23,18 @@ const Architecture = React.lazy(() => import("./pages/Architecture"));
 
 function LoginPageWrapper() {
   const auth = useAuth();
+  const navigate = useNavigate();
   if (auth.isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
-  return <LoginPage onLogin={auth.login} isConfigured={auth.isConfigured} />;
+  
+  const handleDemo = async () => {
+    sessionStorage.setItem("flowmind_demo_mode", "true");
+    await flowmindApi.demo();
+    navigate("/dashboard");
+  };
+
+  return <LoginPage onLogin={auth.login} onDemo={handleDemo} isConfigured={auth.isConfigured} />;
 }
 
 function Shell() {
