@@ -84,8 +84,8 @@ export default function Standup() {
   // Determine blockers related to this owner or generic high severity ones
   const ownerBlockers = blockers.filter((b) => {
     const isOwnerMentioned = 
-      b.title.toLowerCase().includes(selectedOwner.toLowerCase()) || 
-      b.description.toLowerCase().includes(selectedOwner.toLowerCase());
+      (b.title || "").toLowerCase().includes(selectedOwner.toLowerCase()) || 
+      (b.description || "").toLowerCase().includes(selectedOwner.toLowerCase());
     return b.status === "open" && (isOwnerMentioned || b.severity === "high");
   });
 

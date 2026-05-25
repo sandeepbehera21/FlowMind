@@ -61,7 +61,7 @@ export function ActionBoard({
 
   const filteredItems = items.filter((item) => {
     const matchesPriority = priorityFilter === "all" || item.priority === priorityFilter;
-    const matchesOwner = item.owner.toLowerCase().includes(ownerSearch.toLowerCase());
+    const matchesOwner = (item.owner || "").toLowerCase().includes(ownerSearch.toLowerCase());
     return matchesPriority && matchesOwner;
   });
 
