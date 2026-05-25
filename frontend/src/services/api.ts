@@ -26,10 +26,21 @@ export async function attachAuth(instance: IPublicClientApplication, account: Ac
       config.headers["x-graph-token"] = "demo-graph-token";
       return config;
     }
-    const idToken = await instance.acquireTokenSilent({ ...loginRequest, account, scopes: ["openid", "profile", "email"] });
-    const graphToken = await instance.acquireTokenSilent({ account, scopes: graphScopes });
-    config.headers.Authorization = `Bearer ${idToken.idToken}`;
-    config.headers["x-graph-token"] = graphToken.accessToken;
+    try {
+      const idToken = await instance.acquireTokenSilent({ ...loginRequest, account, scopes: ["openid", "profile", "email"] });
+      config.headers.Authorization = `Bearer ${idToken.idToken}`;
+      
+      try {
+        const graphToken = await instance.acquireTokenSilent({ account, scopes: graphScopes });
+        config.headers["x-graph-token"] = graphToken.accessToken;
+      } catch (graphError) {
+        console.warn("Silent token acquisition for Microsoft Graph scopes failed. Falling back to ID token.", graphError);
+        config.headers["x-graph-token"] = idToken.idToken;
+      }
+    } catch (authError) {
+      console.error("Authentication silent token acquisition failed", authError);
+      throw authError;
+    }
     return config;
   });
 }
